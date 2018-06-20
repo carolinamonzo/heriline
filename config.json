@@ -1,0 +1,34 @@
+{
+"global_config":{
+    "test":"",
+    "debug":"",
+    "verbose":"",
+    "working_directory":"",
+    "ori_fastq":"",
+    "ori_bed":"",
+    "reference_genome":"/nfs/qnapugdg8tb3a/nfs_references/human/1kg/hs37d5/hs37d5.fa",
+    "test_directory":"/media/qnapugdg8tb_2b/cmc_projects_tmp/heriline/test_data/"
+    },
+"paths":{
+    "analysis":"",
+    "plots":"",
+    "coverage":"",
+    "fastq":"",
+    "fastq_merged":"",
+    "fastq_trimmed":"",
+    "fastq_QC":"",
+    "fastq_QC_raw":"",
+    "fastq_QC_merged":"",
+    "fastq_QC_trimmed":"",
+    "heritage":"",
+    "mapping":"",
+    "mapping_QC":"",
+    "variant_calling":"",
+    "variant_calling_decomposed":"",
+    "variant_annotation":"",
+    "bed":"",
+    "fastq_files":"",
+    "fof_files":"",
+    "cmd_files":""
+    }
+}

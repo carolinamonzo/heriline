@@ -1,0 +1,133 @@
+#! usr/bin/python3.6
+
+# 2017-12-31, Carolina Monzo
+
+# Modified for exomes-imprinting 2018-03-12
+
+import os
+import re   
+import pandas as pd
+import argparse
+
+def parseArguments():
+    '''
+    Function to parse arguments
+    Input: path to project
+    Output: parsed arguments from command line
+    '''
+
+    # Create argument parser class
+    parser = argparse.ArgumentParser(description = "Merge fastq files")
+
+    # Define arguments to parse
+    parser.add_argument("--project_path", "-p", required = False, type = str, help = "Argument to set the path to the project")
+
+    # Call for arguments
+    args = parser.parse_args()
+
+    return(args)
+
+def createFastqFof(project_path):
+    '''
+    Function to create fastq files fof
+    Input: path to the project of interest
+    Output: fof file to do the merging
+    '''
+    # Create fof file
+    cmd_fof = 'find {0}/fastq_files -name "*.fastq.gz" > {1}/analysis/fof_files/fastq_files_ori.fof'.format(project_path, project_path)
+
+    # Write command on the command line
+    print("[CMD]: " + cmd_fof)
+    
+    # Execute command and return fof file
+    os.system(cmd_fof)
+    return('{0}/analysis/fof_files/fastq_files_ori.fof'.format(project_path))
+
+
+def fastq_dataframe(fastq_files, project_path):
+    '''
+    Function to take lines from fof file and create a sorted pandas dataframe with info from fastqs
+    Input: list of fastq files read from the fof file
+    Output: sorted dataframe with the fastq name metadata
+    '''
+
+    # Regular expression to create an annonymous dictionary
+    dict_list = []
+    rex = re.compile(r"{}/fastq_files/(?P<sample>\d+)_S(?P<sh>\d+)_L(?P<lane>\d+)_R(?P<read>\d+).+".format(project_path))
+    for fastq in fastq_files:
+        m = rex.match(fastq)
+        dicc = m.groupdict()
+        dicc['fastq_file'] = fastq.split('/')[-1]
+        dicc['fastq_path'] = str(fastq)
+        dict_list.append(dicc)
+
+    # Read fastq info array into a pandas dataframe
+    df_fastq = pd.DataFrame(dict_list, columns = ['sample', 'sh', 'lane', 'read', 'fastq_file', 'fastq_path'])
+    # Sort by sample, lane and read
+    df_fastq_sorted = df_fastq.sort_values(by=["fastq_path"], ascending=[True]).reset_index(drop=True)
+
+    return(df_fastq_sorted)
+
+
+def cmd_zcat_fastq(df_fastq_sorted, project_path):
+    '''
+    Function to generate the zcat commands, it selects R1 and R2 from sorted samples
+    Input: dataframe of fastq sorted names
+    Output: cmd file with the zcat commands of ordered fastqs to merge
+    '''
+
+    # Create list by sample
+    samples = list(df_fastq_sorted['sample'].unique())
+    
+    # Set zcat template
+
+    for i in range(len(samples)):
+            
+            sample_fastqs = list(df_fastq_sorted[df_fastq_sorted['sample']==samples[i]]['fastq_path'])
+            R1_list = sample_fastqs[0::2]
+            R2_list = sample_fastqs[1::2]
+            merged_fastq_name = df_fastq_sorted['sample'].unique()[i]
+            R1_str = "zcat {} | gzip > {}/analysis/fastq/fastq_merged/{}_R1_merged.fastq.gz".format(' '.join(R1_list), project_path, merged_fastq_name)
+            R2_str = "zcat {} | gzip > {}/analysis/fastq/fastq_merged/{}_R2_merged.fastq.gz".format(' '.join(R2_list), project_path, merged_fastq_name)
+                                    
+            # Write the cmd.sh file
+            with open('{}/analysis/cmd_files/cmd_zcat_fastq.sh'.format(project_path), 'a') as cmd_file:
+                cmd_file.write(R1_str + '\n')
+                cmd_file.write(R2_str + '\n')
+
+    print("[INFO]: CMD_FILE - {}/analysis/cmd_files/cmd_zcat_fastq.sh".format(project_path))
+
+
+def run_parallel(project_path):
+    '''
+    Function to run the cmd file in parallel
+    Input: cmd file and project path to find it
+    Output: merged fastq files
+    '''
+
+    cmd = "parallel --joblog {}/analysis/fastq/fastq_merged/merge_fastq.log -j 15 :::: {}/analysis/cmd_files/cmd_zcat_fastq.sh".format(project_path, project_path)
+
+    print("[CMD] " + cmd)
+
+    os.system(cmd)
+
+def main():
+    '''
+    Function to sort the orders
+    '''
+    args = parseArguments()
+
+    fastq_fof = createFastqFof(args.project_path)
+
+    with open(fastq_fof) as fof:
+            fastq_files = fof.read().splitlines()
+
+    df_fastq_sorted = fastq_dataframe(fastq_files, args.project_path)
+
+    cmd_zcat_fastq(df_fastq_sorted, args.project_path)
+
+    run_parallel(args.project_path)
+
+
+if __name__ == '__main__':
+    main()

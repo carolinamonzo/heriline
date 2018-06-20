@@ -1,0 +1,92 @@
+#! usr/bin/python3.6
+
+# 2018-03-28, Carolina Monzo
+
+# Variant calling
+
+import os
+import argparse
+import json
+import datetime
+import glob
+import subprocess
+
+def parseArguments():
+    '''
+    Function to parse arguments
+    Input: path to project
+    Output: parsed arguments from command line
+    '''
+
+    # Create argument parser class
+    parser = argparse.ArgumentParser(description = "Call variants from merged bam file")
+
+    # Define arguments to parse
+    parser.add_argument("--project_path", "-p", required = False, type = str, help = "Argument to set the path to the project")
+
+    # Call for arguments
+    args = parser.parse_args()
+
+    return(args)
+
+def get_config(project_path):
+    """
+    Load config dictionary
+    """
+
+    config_list = []
+
+    os.chdir(project_path)
+    for file in glob.glob("config_*.json"):
+        config_list.append(file)
+
+    config_pwd = project_path + sorted(config_list)[-1]
+
+    with open(config_pwd, "r") as jconfig:
+        config = json.load(jconfig)
+
+    return(config)
+
+def callVariants(config):
+    """
+    Function to get the merged bam file with all individuals
+    Input: config dictionary with path to files
+    Output: cmd file
+    """
+    cmd_sh = datetime.datetime.now().strftime("cmd_call_variants_%Y%m%d_%H-%M-%S.log")
+
+    cmd_str = "freebayes -f /nfs/qnapugdg8tb3a/nfs_references/human/1kg/hs37d5/hs37d5.fa --min-alternate-fraction 0.05 --report-all-haplotype-alleles --min-base-quality 10 --pooled-continuous -C 4 {}all_merged.bam > {}all_merged.vcf".format(config["paths"]["mapping"], config["paths"]["variant_calling"])
+
+    with open(config["paths"]["cmd_files"] + cmd_sh, "a") as cmd_file:
+        cmd_file.write(cmd_str)
+
+    print("[INFO]: CMD_FILE - {}{}".format(config["paths"]["cmd_files"], cmd_sh))
+    print("[CMD]: " + cmd_str)
+    print("[INFO]: VCF_MULTISAMPLE - {}all_merged.vcf".format(config["paths"]["variant_calling"]))
+
+    return(cmd_str)
+
+def run(config, cmd_str):
+
+    subprocess.call(cmd_str, shell = True)
+
+
+
+
+
+
+def main():
+
+    args = parseArguments()
+
+    config = get_config(args.project_path)
+
+    cmd_str = callVariants(config)
+
+    run(config, cmd_str)
+
+
+if __name__ == '__main__':
+    main()
+
+

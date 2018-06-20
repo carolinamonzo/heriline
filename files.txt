@@ -1,0 +1,67 @@
+# merge_fastq
+
+input_fof = "fastq_files_ori_{}.fof"
+cmd_file = "cmd_zcat_fastq_{}.sh"
+parallel_log = "merge_fastq_{}.log"
+output_fof = "merged_fastq_{}.fof"
+
+# trimm fastq
+input_fof = "merged_fastq_{}.fof"
+cmd_file = "cmd_trimm_fastq_{}.sh"
+parallel_log = "trimming_fastq_{}.log"
+output_fof = "merged_trimmed_fastq_files_{}.fof"
+
+# map
+input_fof = "merged_trimmed_fastq_files_{}.fof"
+cmd_file = "cmd_bwa_mem_{}.sh"
+parallel_log = "bwa_mem_{}.log"
+output_fof = "mapped_sorted_bwa_mem_{}.fof"
+
+
+# mark duplicates
+input_fof = "mapped_sorted_bwa_mem_{}.fof"
+cmd_file = "cmd_mark_duplicates_{}.sh"
+parallel_log = "mark_duplicates_{}.log"
+output_fof = "marked_duplicates_bam_{}.fof"
+
+
+# split chr
+input_fof = "marked_duplicates_bam_{}.fof"
+cmd_file = "cmd_split_bam_{}.sh"
+parallel_log = "split_bam_{}.log"
+output_fof = "splitted_bams_{}.fof"
+
+
+# merge_bams
+input_fof = "splitted_bams_{}.fof"
+cmd_file = "cmd_merge_bam_{}.sh"
+parallel_log = "merge_bam_{}.log"
+output_fof = "merged_bams_chr_{}.fof"
+
+
+# variant calling
+input_fof = "merged_bams_chr_{}.fof"
+cmd_file = "cmd_call_variants_{}.sh"
+parallel_log = "call_variants_{}.log"
+output_fof = "variant_calling_chr_{}.fof"
+
+
+# decompose normalize
+input_fof = "variant_calling_chr{}.fof"
+cmd_file = "cmd_decompose_normalize_vcf_{}.sh"
+parallel_log = "decompose_vcf_{}.log"
+output_fof = "decompose_chr_{}.fof"
+
+# variant annotation
+input_fof = "decompose_chr_{}.fof"
+cmd_file = "cmd_annotate_variants_{}.sh"
+parallel_log = "annotate_variants_{}.log"
+output_fof = "variant_annotation_chr_{}.fof"
+
+# variant concatenation
+input_fof = "variant_annotation_chr{}.fof"
+cmd_file = "cmd_concat_vcf_{}.sh"
+parallel_log = "concat_vcf_{}.log"
+output_fof = None
+
+
