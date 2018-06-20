@@ -15,9 +15,9 @@ import subprocess
 # GENERAL VARIABLES
 merged_fastq = "merged_fastq_{}.fof"
 trimmed_fastq = "merged_trimmed_fastq_files_{}.fof"
-cmd_file = "cmd_fastq_QC_{}.sh"
-parallel_log = "fastq_QC_{}.log"
-output_fof = "merged_and_trimmed_fastqQC_{}.fof"
+_CMD_FILE = "cmd_fastq_QC_{}.sh"
+_PARALLEL_LOG = "fastq_QC_{}.log"
+_OUTPUT_FOF = "merged_and_trimmed_fastqQC_{}.fof"
 
 def parseArguments():
     '''
@@ -89,10 +89,10 @@ def cmd_fastqQC(config, merged_fof, trimmed_fof):
 
     cmd_time = datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S")
 
-    cmd_sh = cmd_file.format(cmd_time)
+    cmd_sh = _CMD_FILE.format(cmd_time)
 
     for fastq in fof:
-        samplename = fastq.split('/')[-1].split('.')[0]
+        samplename = fastq.split('/')[-1]
 
         # If files are trimmed, send output to trimmed QC directory
         if "trimmed" in samplename:
@@ -119,7 +119,7 @@ def run_parallel(config, cmd_sh):
 
     log_time = datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S")
 
-    log_str = parallel_log.format(log_time)
+    log_str = _PARALLEL_LOG.format(log_time)
 
     cmd = "parallel --joblog {}{} -j 10 :::: {}{}".format(config["paths"]["fastq_QC"], log_str, config["paths"]["cmd_files"], cmd_sh)
 
@@ -136,7 +136,7 @@ def write_output_fof(config):
 
     fof_time = datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S")
 
-    fof = output_fof.format(fof_time)
+    fof = _OUTPUT_FOF.format(fof_time)
 
     cmd_str = 'find {} -name "*_fastqc.html" > {}{}'.format(config["paths"]["fastq_QC"], config["paths"]["fof_files"], fof)
 
