@@ -85,7 +85,7 @@ def cmd_mapping_statistics(config, fof):
 
         for fi in fof:
             sample_name = fi.split("/")[-1].split("_")[0]
-            cmd_str = "java -jar /software/bin/picard.jar CollectMultipleMetrics I={} O={}/{} R={} ASSUME_SORTED=TRUE INCLUDE_UNPAIRED=TRUE PROGRAM=CollectAlignmentSummaryMetrics PROGRAM=CollectInsertSizeMetrics PROGRAM=QualityScoreDistribution PROGRAM=MeanQualityByCycle PROGRAM=CollectBaseDistributionByCycle PROGRAM=CollectGcBiasMetrics PROGRAM=CollectSequencingArtifactMetrics".format(fi, config["paths"]["mapping_QC"], sample_name, config["global_config"]["reference_genome"])
+            cmd_str = "java -jar /software/bin/picard.jar CollectAlignmentSummaryMetrics I={} O={}/{} R={} ASSUME_SORTED=TRUE".format(fi, config["paths"]["mapping_QC"], sample_name, config["global_config"]["reference_genome"])
 
             cmd_file.write(cmd_str + '\n')
 
