@@ -16,10 +16,10 @@ import logging
 import subprocess
 
 # GENERAL VARIABLES
-input_fof = "fastq_files_ori_{}.fof"
-cmd_file = "cmd_zcat_fastq_{}.sh"
-parallel_log = "merge_fastq_{}.log"
-output_fof = "merged_fastq_{}.fof"
+_INPUT_FOF = "fastq_files_ori_{}.fof"
+_CMD_FILE = "cmd_zcat_fastq_{}.sh"
+_PARALLEL_LOG = "merge_fastq_{}.log"
+_OUTPUT_FOF = "merged_fastq_{}.fof"
 
 def parseArguments():
     '''
@@ -179,15 +179,15 @@ def main():
 
     config = get_config(args.project_path)
 
-    fof = read_input_fof(config, input_fof)
+    fof = read_input_fof(config, _INPUT_FOF)
 
     df_fastq_sorted = fastq_dataframe(config, fof)
     
-    cmd_sh = cmd_zcat_fastq(config, cmd_file, df_fastq_sorted)
+    cmd_sh = cmd_zcat_fastq(config, _CMD_FILE, df_fastq_sorted)
 
-    run_parallel(config, parallel_log, cmd_sh)
+    run_parallel(config, _PARALLEL_LOG, cmd_sh)
 
-    write_output_fof(config, output_fof)
+    write_output_fof(config, _OUTPUT_FOF)
 
 if __name__ == '__main__':
     main()
