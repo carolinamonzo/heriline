@@ -152,7 +152,7 @@ def run_parallel(config, parallel_log, cmd_sh):
 
     print("[CMD]: " + cmd)
 
-    subprocess.call(cmd, shell = True)
+    subprocess.call(cmd + " 2> /dev/null", shell = True)
 
 
 def write_output_fof(config, output_fof):

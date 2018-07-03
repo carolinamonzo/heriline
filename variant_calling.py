@@ -101,7 +101,7 @@ def run_parallel(config, cmd_sh):
 
     # Execute command
 
-    subprocess.call(cmd, shell = True)
+    subprocess.call(cmd + " 2> /dev/null", shell = True)
 
 
 def write_output_fof(config):
