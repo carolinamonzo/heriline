@@ -189,6 +189,14 @@ def create_directories(config, logger):
         config["paths"]["bed"]))
     run_cmd(cmd_symlink, config, logger)
 
+
+    logger.info("Creating symlink to original fastq files using 'symlink_fastq.sh script from heriline'\n")
+
+    # Symlink the original fastq files to the project
+    cmd_fqsymlink = ("bash symlink_fastq.sh -i {} -p {}".format(config["global_config"]["ori_fastq"], config["global_config"]["working_directory"]))
+
+    run_cmd(cmd_fqsymlink, config, logger)
+
     return(config)
 
 def check_args(args, config, logger):
