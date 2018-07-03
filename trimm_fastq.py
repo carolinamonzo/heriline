@@ -94,7 +94,7 @@ def run_parallel(config, cmd_sh):
     cmd_str = "parallel --joblog {}{} -j15 :::: {}{}".format(config["paths"]["fastq_trimmed"], log_str, config["paths"]["cmd_files"], cmd_sh)
 
     print ("[CMD]: " + cmd_str)
-    subprocess.call(cmd_str + "2> /dev/null", shell = True)
+    subprocess.call(cmd_str + " 2> /dev/null", shell = True)
 
 def write_output_fof(config):
     '''
