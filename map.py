@@ -150,7 +150,7 @@ def run_parallel(config, cmd_sh):
 
     print("[CMD]: " + cmd)
 
-    subprocess.call(cmd, shell = True)
+    subprocess.call(cmd + " 2> /dev/null", shell = True)
 
 def write_output_fof(config):
     '''
@@ -169,7 +169,7 @@ def write_output_fof(config):
     print("[INFO]: FOF_FILE - {}{}".format(config["paths"]["fof_files"], fof))
 
     # Execute command
-    os.system(cmd_fof)
+    subprocess.call(cmd_fof, shell = True)
 
 
 def main():
