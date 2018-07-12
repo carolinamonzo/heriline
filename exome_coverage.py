@@ -84,7 +84,7 @@ def cmd_coverage(config, fof):
         for fi in fof:
             sample_name = fi.split("/")[-1].split("_")[0]
 
-            cmd_str = "bedtools coverage -hist -b {} -a {}/agilent_v5_nochr_formatted.bed | grep ^all > {}/{}.hist.all.txt".format(fi, config["paths"]["bed"], config["paths"]["coverage"], sample_name)
+            cmd_str = "bedtools coverage -hist -sorted -b {} -a {}/agilent_v5_nochr_formatted.bed | grep ^all > {}/{}.hist.all.txt".format(fi, config["paths"]["bed"], config["paths"]["coverage"], sample_name)
 
             cmd_file.write(cmd_str + '\n')
             
