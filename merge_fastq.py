@@ -15,12 +15,6 @@ import coloredlogs
 import logging
 import subprocess
 
-# GENERAL VARIABLES
-_INPUT_FOF = "fastq_files_ori_{}.fof"
-_CMD_FILE = "cmd_zcat_fastq_{}.sh"
-_PARALLEL_LOG = "merge_fastq_{}.log"
-_OUTPUT_FOF = "merged_fastq_{}.fof"
-
 def parseArguments():
     '''
     Function to parse arguments
@@ -60,7 +54,7 @@ def get_config(project_path):
     return(config)
 
 
-def read_input_fof(config, input_fof):
+def read_input_fof(config):
     '''
     Function to create fastq files fof
     Input: path to the project of interest
@@ -70,7 +64,7 @@ def read_input_fof(config, input_fof):
 
     fof_list = []
 
-    for file in glob.glob(config["paths"]["fof_files"] + input_fof.format("*")):
+    for file in glob.glob(config["paths"]["fof_files"] + "fastq_files_ori_*.fof"):
         fof_list.append(file)
 
     fof_pwd = os.path.normpath(sorted(fof_list)[-1])
@@ -105,7 +99,7 @@ def fastq_dataframe(config, fastq_files):
     return(df_fastq_sorted)
 
 
-def cmd_zcat_fastq(config, cmd_file, df_fastq_sorted):
+def cmd_zcat_fastq(config, df_fastq_sorted):
     '''
     Function to generate the zcat commands, it selects R1 and R2 from sorted samples
     Input: dataframe of fastq sorted names
@@ -113,7 +107,7 @@ def cmd_zcat_fastq(config, cmd_file, df_fastq_sorted):
     '''
     cmd_time = datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S")
 
-    cmd_sh = cmd_file.format(cmd_time)
+    cmd_sh = "cmd_zcat_fastq_{}.sh".format(cmd_time)
 
     # Create list by sample
     samples = list(df_fastq_sorted['sample'].unique())
@@ -138,7 +132,7 @@ def cmd_zcat_fastq(config, cmd_file, df_fastq_sorted):
 
     return(cmd_sh)
 
-def run_parallel(config, parallel_log, cmd_sh):
+def run_parallel(config, cmd_sh):
     '''
     Function to run the cmd file in parallel
     Input: cmd file and project path to find it
@@ -146,7 +140,7 @@ def run_parallel(config, parallel_log, cmd_sh):
     '''
     log_time = datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S")
 
-    log_str = parallel_log.format(log_time)
+    log_str = "merge_fastq_{}.log".format(log_time)
 
     cmd = "parallel --joblog {}{} -j 15 :::: {}{}".format(config["paths"]["fastq_merged"], log_str, config["paths"]["cmd_files"], cmd_sh)
 
@@ -155,7 +149,7 @@ def run_parallel(config, parallel_log, cmd_sh):
     subprocess.call(cmd + " 2> /dev/null", shell = True)
 
 
-def write_output_fof(config, output_fof):
+def write_output_fof(config):
     """
     Create fof file for merged fastq files
     """
@@ -163,7 +157,7 @@ def write_output_fof(config, output_fof):
 
     fof_time = datetime.datetime.now().strftime("%Y%m%d_%H-%M-%S")
 
-    fof = output_fof.format(fof_time)
+    fof = "merged_fastq_{}.fof".format(fof_time)
 
     cmd_str = 'find {} -name "*.fastq.gz" > {}{}'.format(config["paths"]["fastq_merged"],config["paths"]["fof_files"], fof)
     print("[CMD]: " + cmd_str)
@@ -179,15 +173,15 @@ def main():
 
     config = get_config(args.project_path)
 
-    fof = read_input_fof(config, _INPUT_FOF)
+    fof = read_input_fof(config)
 
     df_fastq_sorted = fastq_dataframe(config, fof)
     
-    cmd_sh = cmd_zcat_fastq(config, _CMD_FILE, df_fastq_sorted)
+    cmd_sh = cmd_zcat_fastq(config, df_fastq_sorted)
 
-    run_parallel(config, _PARALLEL_LOG, cmd_sh)
+    run_parallel(config, cmd_sh)
 
-    write_output_fof(config, _OUTPUT_FOF)
+    write_output_fof(config)
 
 if __name__ == '__main__':
     main()
