@@ -30,5 +30,6 @@
     "fastq_files":"",
     "fof_files":"",
     "cmd_files":""
-    }
+    },
+"steps":""
 }
