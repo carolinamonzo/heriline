@@ -264,7 +264,10 @@ def heriline_steps(config, logger):
         step4_mark_duplicates\n \
         step5_split_chr\n \
         step6_merge_bam\n \
-        step7_call_variants\n")
+        step7_call_variants\n \
+        step_8_decompose_normalize\n \
+        step_9_annotate\n \
+        step_10_concatenate_vcf\n")
 
 
 def main():
