@@ -27,6 +27,8 @@ import mark_duplicates
 import split_chr
 import merge_bams
 import variant_calling
+import decompose_normalize
+import variant_annotation
 import variant_concatenation
 
 def run_utils():
@@ -162,7 +164,37 @@ def run_variant_calling(config, logger):
 
     config["steps"] = "step7_call_variants"
 
-    export_config(config, logger)
+
+def run_decompose_normalize(config, logger):
+    # RUN DECOMPOSE NORMALIZE
+
+    logger.info("DECOMPOSE AND NORMALIZE using VT\n")
+
+    fof = decompose_normalize.read_input_fof(config)
+    
+    cmd_sh = decompose_normalize.cmd_decompose_vcf(config, fof)
+
+    decompose_normalize.run_parallel(config, cmd_sh)
+
+    decompose_normalize.write_output_fof(config)
+
+    config["steps"] = "step_8_decompose_normalize"
+
+def run_variant_annotation(config, logger):
+    # RUN ANNOTATE
+
+    logger.info("ANNOTATE VARIANTS using VEP\n")
+
+    fof = variant_annotation.read_input_fof(config)
+
+    cmd_sh = variant_annotation.cmd_annotate_vcf(config, fof)
+
+    variant_annotation.run_parallel(config, cmd_sh)
+
+    variant_annotation.write_output_fof(config)
+
+    config["steps"] = "step_9_annotate"
+
 
 def run_vcf_concat(config, logger):
     # RUN VCF CONCAT
@@ -174,6 +206,8 @@ def run_vcf_concat(config, logger):
     cmd_sh = variant_concatenation.cmd_concat_vcf(config, fof)
 
     variant_concatenation.run_parallel(config, cmd_sh)
+
+    config["steps"] = "step_10_concatenate_vcf"
 
     logger.info("FINAL_FILE - {}{}".format(config["paths"]["variant_annotation"], "all_chrom_merged-decomp-norm_vep.vcf.gz"))
 
@@ -190,10 +224,12 @@ def main():
     run_split_chr(config, logger)
     run_merge_bam(config, logger)
     run_variant_calling(config, logger)
+    run_decompose_normalize(config, logger)
+    run_variant_annotation(config, logger)
     run_vcf_concat(config, logger)
 
 
-
+    print("Last step ran is: {}".format(config["steps"]))
     export_config(config, logger)
 
     pprint.pprint(config)
