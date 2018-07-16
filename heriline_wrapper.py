@@ -18,10 +18,19 @@ import subprocess
 
 coloredlogs.install()
 
+## IMPORT HERILINE
+from utils import *
+import merge_fastq
+import trimm_fastq
+import map_fastq
+import mark_duplicates
+import split_chr
+import merge_bams
+import variant_calling
+import variant_concatenation
+
 def run_utils():
     ## RUN UTILS.PY
-
-    from utils import *
 
     args = parseArguments()
 
@@ -41,7 +50,6 @@ def run_utils():
 def run_merge_fastq(config, logger):
     ## RUN MERGE FASTQ_FILES.PY
 
-    import merge_fastq
     # Running only functions of interest
 
     logger.info("MERGING FASTQ FILES using zcat\n")
@@ -63,8 +71,6 @@ def run_merge_fastq(config, logger):
 def run_trimm_fastq(config, logger):
     ## RUN TRIMM FASTQ_FILES.PY
 
-    import trimm_fastq
-
     # Running only functions of interest
     logger.info("TRIMMING FASTQ FILES using seqtk\n")
 
@@ -80,8 +86,6 @@ def run_trimm_fastq(config, logger):
 
 def run_map(config, logger):
     ## RUN MAP.PY
-
-    import map_fastq
 
     logger.info("MAPPING using BWA-MEM\n")
 
@@ -100,8 +104,6 @@ def run_map(config, logger):
 def run_mark_duplicates(config, logger):
     ## RUN MARK DUPLICATES.PY
 
-    import mark_duplicates
-
     logger.info("MARKING DUPLICATES using picard\n")
 
     fof = mark_duplicates.read_input_fof(config)
@@ -118,8 +120,6 @@ def run_mark_duplicates(config, logger):
 def run_split_chr(config, logger):
     ## RUN SPLIT CHR.PY
 
-    import split_chr
-
     logger.info("SPLITTING BAM FILES PER CHROMOSOME using samtools\n")
 
     fof = split_chr.read_input_fof(config)
@@ -135,8 +135,6 @@ def run_split_chr(config, logger):
 def run_merge_bam(config, logger):
     ## RUN MERGE BAM FILES PER SAMPLE AND CHROMOSOME
 
-    import merge_bams
-
     logger.info("MERGING BAM FILES PER SAMPLE AND CHROMOSOME using samtools\n")
 
     fof = merge_bams.read_input_fof(config)
@@ -151,8 +149,6 @@ def run_merge_bam(config, logger):
 
 def run_variant_calling(config, logger):
     ## RUN VARIANT CALLING
-
-    import variant_calling
 
     logger.info("VARIANT CALLING using freebayes\n")
 
@@ -170,8 +166,6 @@ def run_variant_calling(config, logger):
 
 def run_vcf_concat(config, logger):
     # RUN VCF CONCAT
-
-    import variant_concatenation
 
     logger.info("CONCATENATION OF VCF FILES using vcftools")
 
