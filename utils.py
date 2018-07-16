@@ -252,6 +252,20 @@ def export_config(config, logger):
 
     logger.info('Exporting config log: ' + result)
 
+def heriline_steps(config, logger):
+    '''
+    Function to show the steps of the pipeline and which ones have been ran
+    '''
+
+    print("Heriline steps: \n \
+        step1_merge_fastq\n \
+        step2_trimm_fastq\n \
+        step3_map\n \
+        step4_mark_duplicates\n \
+        step5_split_chr\n \
+        step6_merge_bam\n \
+        step7_call_variants\n")
+
 
 def main():
     # When running only utils, processes.
@@ -263,6 +277,9 @@ def main():
     config = load_config(args)
 
     check_args(args, config, logger)
+
+    if args.show_steps is True:
+        heriline_steps(config, logger)
 
     config = create_directories(config, logger)
 
