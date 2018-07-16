@@ -18,169 +18,193 @@ import subprocess
 
 coloredlogs.install()
 
+def run_utils():
+    ## RUN UTILS.PY
 
-## RUN UTILS.PY
+    from utils import *
 
-from utils import *
+    args = parseArguments()
 
-args = parseArguments()
+    logger = setLogger(setMode(args), "__main__")
 
-logger = setLogger(setMode(args), "__main__")
+    config = load_config(args)
 
-config = load_config(args)
+    check_args(args, config, logger)
 
-check_args(args, config, logger)
+    config = create_directories(config, logger)
 
-config = create_directories(config, logger)
+    get_software_versions(config, logger)
 
-get_software_versions(config, logger)
+    return(config, logger)
 
-# This must be the last thing to do each step
-export_config(config, logger)
 
-## RUN MERGE FASTQ_FILES.PY
+def run_merge_fastq(config, logger):
+    ## RUN MERGE FASTQ_FILES.PY
 
-import merge_fastq
-# Running only functions of interest
+    import merge_fastq
+    # Running only functions of interest
 
-logger.info("MERGING FASTQ FILES using zcat\n")
+    logger.info("MERGING FASTQ FILES using zcat\n")
 
-fof = merge_fastq.read_input_fof(config)
+    fof = merge_fastq.read_input_fof(config)
 
-df_fastq_sorted = merge_fastq.fastq_dataframe(config, fof)
+    df_fastq_sorted = merge_fastq.fastq_dataframe(config, fof)
 
-cmd_sh = merge_fastq.cmd_zcat_fastq(config, df_fastq_sorted)
+    cmd_sh = merge_fastq.cmd_zcat_fastq(config, df_fastq_sorted)
 
-merge_fastq.run_parallel(config, cmd_sh)
+    merge_fastq.run_parallel(config, cmd_sh)
 
-merge_fastq.write_output_fof(config)
+    merge_fastq.write_output_fof(config)
 
-# Document on config file
+    # Document on config file
 
-config["steps"]["step1_merge_fastq"] = "DONE_{}".format(output_fof)
+    config["steps"] = "step1_merge_fastq"
 
-# This must be the last thing to do each step
-export_config(config, logger)
+def run_trimm_fastq(config, logger):
+    ## RUN TRIMM FASTQ_FILES.PY
 
+    import trimm_fastq
 
-## RUN TRIMM FASTQ_FILES.PY
+    # Running only functions of interest
+    logger.info("TRIMMING FASTQ FILES using seqtk\n")
 
-import trimm_fastq
+    fof = trimm_fastq.read_input_fof(config)
 
-# Running only functions of interest
-logger.info("TRIMMING FASTQ FILES using seqtk\n")
+    cmd_sh = trimm_fastq.cmd_trimm_fastq(config, fof)
 
-fof = trimm_fastq.read_input_fof(config)
+    trimm_fastq.run_parallel(config, cmd_sh)
 
-cmd_sh = trimm_fastq.cmd_trimm_fastq(config, fof)
+    trimm_fastq.write_output_fof(config)
 
-trimm_fastq.run_parallel(config, cmd_sh)
+    config["steps"] = "step2_trimm_fastq"
 
-trimm_fastq.write_output_fof(config)
+def run_map(config, logger):
+    ## RUN MAP.PY
 
-config["steps"]["step2_trimm_fastq"] = "DONE_{}".format(output_fof)
+    import map_fastq
 
-# This must be the last thing to do each step
-export_config(config, logger)
+    logger.info("MAPPING using BWA-MEM\n")
 
+    fof = map_fastq.read_input_fof(config)
 
-## RUN MAP.PY
+    df_fastq_sorted = map_fastq.merged_fastq_dataframe(config, fof)
 
-import map_fastq
+    cmd_sh = map_fastq.cmd_map_fastq(config, df_fastq_sorted)
 
-logger.info("MAPPING using BWA-MEM\n")
+    map_fastq.run_parallel(config, cmd_sh)
 
-fof = map_fastq.read_input_fof(config)
+    map_fastq.write_output_fof(config)
 
-df_fastq_sorted = map_fastq.merged_fastq_dataframe(config, fof)
+    config["steps"]= "step3_map"
 
-cmd_sh = map_fastq.cmd_map_fastq(config, df_fastq_sorted)
+def run_mark_duplicates(config, logger):
+    ## RUN MARK DUPLICATES.PY
 
-map_fastq.run_parallel(config, cmd_sh)
+    import mark_duplicates
 
-map_fastq.write_output_fof(config)
+    logger.info("MARKING DUPLICATES using picard\n")
 
-config["steps"]["step3_map"] = "DONE_{}".format(output_fof)
+    fof = mark_duplicates.read_input_fof(config)
 
-# This must be the last thing to do each step
+    cmd_sh = mark_duplicates.cmd_mark_duplicates(config, fof)
 
-export_config(config, logger)
+    mark_duplicates.run_parallel(config, cmd_sh)
 
+    mark_duplicates.write_output_fof(config)
 
-## RUN MARK DUPLICATES.PY
+    config["steps"] = "step4_mark_duplicates"
 
-import mark_duplicates
 
-logger.info("MARKING DUPLICATES using picard\n")
+def run_split_chr(config, logger):
+    ## RUN SPLIT CHR.PY
 
-fof = mark_duplicates.read_input_fof(config)
+    import split_chr
 
-cmd_sh = mark_duplicates.cmd_mark_duplicates(config, fof)
+    logger.info("SPLITTING BAM FILES PER CHROMOSOME using samtools\n")
 
-mark_duplicates.run_parallel(config, cmd_sh)
+    fof = split_chr.read_input_fof(config)
 
-mark_duplicates.write_output_fof(config)
+    cmd_sh = split_chr.cmd_split_bam(config, fof)
 
-config["steps"]["step4_mark_duplicates"] = "DONE_{}".format(output_fof)
+    split_chr.run_parallel(config, cmd_sh)
 
-export_config(config, logger)
+    split_chr.write_output_fof(config)
 
+    config["steps"] = "step5_split_chr"
 
-## RUN SPLIT CHR.PY
+def run_merge_bam(config, logger):
+    ## RUN MERGE BAM FILES PER SAMPLE AND CHROMOSOME
 
-import split_chr
+    import merge_bams
 
-logger.info("SPLITTING BAM FILES PER CHROMOSOME using samtools\n")
+    logger.info("MERGING BAM FILES PER SAMPLE AND CHROMOSOME using samtools\n")
 
-fof = split_chr.read_input_fof(config)
+    fof = merge_bams.read_input_fof(config)
 
-cmd_sh = split_chr.cmd_split_bam(config, fof)
+    cmd_sh = merge_bams.cmd_merge_bam(config, fof)
 
-split_chr.run_parallel(config, cmd_sh)
+    merge_bams.run_parallel(config, cmd_sh)
 
-split_chr.write_output_fof(config)
+    merge_bams.write_output_fof(config)
 
-config["steps"]["step5_split_chr"] = "DONE_{}".format(output_fof)
+    config["steps"] = "step6_merge_bam"
 
-export_config(config, logger)
+def run_variant_calling(config, logger):
+    ## RUN VARIANT CALLING
 
-## RUN MERGE BAM FILES PER SAMPLE AND CHROMOSOME
+    import variant_calling
 
-import merge_bams
+    logger.info("VARIANT CALLING using freebayes\n")
 
-logger.info("MERGING BAM FILES PER SAMPLE AND CHROMOSOME using samtools\n")
+    fof = variant_calling.read_input_fof(config)
 
-fof = merge_bams.read_input_fof(config)
+    cmd_sh = variant_calling.cmd_call_variants(config, fof)
 
-cmd_sh = merge_bams.cmd_merge_bam(config, fof)
+    variant_calling.run_parallel(config, cmd_sh)
 
-merge_bams.run_parallel(config, cmd_sh)
+    variant_calling.write_output_fof(config)
 
-merge_bams.write_output_fof(config)
+    config["steps"] = "step7_call_variants"
 
-config["steps"]["step6_merge_bam"] = "DONE_{}".format(output_fof)
+    export_config(config, logger)
 
-export_config(config, logger)
+def run_vcf_concat(config, logger):
+    # RUN VCF CONCAT
 
-## RUN VARIANT CALLING
+    import variant_concatenation
 
-import variant_calling
+    logger.info("CONCATENATION OF VCF FILES using vcftools")
 
-fof = variant_calling.read_input_fof(config)
+    fof = variant_concatenation.read_input_fof(config)
 
-cmd_sh = variant_calling.cmd_call_variants(config, fof)
+    cmd_sh = variant_concatenation.cmd_concat_vcf(config, fof)
 
-variant_calling.run_parallel(config, cmd_sh)
+    variant_concatenation.run_parallel(config, cmd_sh)
 
-variant_calling.write_output_fof(config)
+    logger.info("FINAL_FILE - {}{}".format(config["paths"]["variant_annotation"], "all_chrom_merged-decomp-norm_vep.vcf.gz"))
 
-config["steps"]["step7_call_variants"] = "DONE_{}".format(output_fof)
 
-export_config(config, logger)
+def main():
+    '''
+    Menu
+    '''
+    config, logger = run_utils()
+    run_merge_fastq(config, logger)
+    run_trimm_fastq(config, logger)
+    run_map(config, logger)
+    run_mark_duplicates(config, logger)
+    run_split_chr(config, logger)
+    run_merge_bam(config, logger)
+    run_variant_calling(config, logger)
+    run_vcf_concat(config, logger)
 
-pprint.pprint(config)
 
 
+    export_config(config, logger)
 
+    pprint.pprint(config)
 
 
+if __name__ == '__main__':
+
+    main()
