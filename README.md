@@ -1,5 +1,5 @@
 # heriline
-Scripts for hereditary variants analysis
+Scripts for hereditary variants analysis, can be run independently or:
 
 ### Arguments to run heriline:
    - Path to bed file
@@ -11,8 +11,8 @@ usage: utils.py [-h] [--test] [--debug] [--verbose] [--ori_fastq ORI_FASTQ]
                 [--ori_bed ORI_BED] [--project_path PROJECT_PATH]
                 [--show_steps]
 
-Pipeline for hereditary variant analysis 'heriline'/n/npython3.5 utils.py -fq
-fastq_path -b bed_file -p project_path
+Pipeline for hereditary variant analysis 'heriline'  
+python3.5 utils.py -fq fastq_path -b bed_file -p project_path
 
 optional arguments:
   -h, --help            show this help message and exit
